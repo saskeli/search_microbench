@@ -8,7 +8,7 @@ Contains 7 implementations:
 
 * `binary` is a naive binary search.
 * `branchless_cmov` is based on conditional moves as proposed by Sanders and Winkel<sup>1</sup>.
-* `branchless_sub` uses the sign bit and subtraction instead of conditional moves. Limits search space to [0..2^21 - 1]
+* `branchless_sub` uses the sign bit and subtraction instead of conditional moves. Limits search space to [0..2^31 - 1]
 * `branchless_sub_fix` is hacked to work for all uint32_t values
 * `linear_scan` is a naive linear scan.
 * `linear_scan_cmov` is a linear scan based on conditional moves.
