@@ -13,6 +13,7 @@ Contains 7 implementations:
 * `linear_scan` is a naive linear scan.
 * `linear_scan_cmov` is a linear scan based on conditional moves.
 * `linear_scan_sub` uses uses sign bit and subtraction instead of conditional moves.
+* `templated_cmov` uses templating to do branching efficiently.
 
 ## Running
 
@@ -28,7 +29,12 @@ Requires python 3.6 or newer for test data generation.
 
 Defaults to c++ 20 standard but should compile fine with older versions as well.
 
-Linear scans benefit massively from vectorization.
+## Results
+
+Running menchmarks on my Intel Core i5-6200U laptop results in 
+
+![](resulst.png)
+
 
 -----------------------------------------------------
 

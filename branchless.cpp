@@ -15,6 +15,16 @@ uint8_t binary(int* arr, int q) {
     return a;
 }
 
+template <uint8_t ell = 64>
+uint8_t templated_cmov(int* arr, int q) {
+    if constexpr (ell == 2) {
+        return arr[0] >= q ? 0 : 1;
+    }
+    uint64_t offset = (arr[ell / 2 - 1] < q) * (ell / 2);
+    uint8_t res = templated_cmov<ell / 2>(arr + offset, q);
+    return res + offset;
+}
+
 uint8_t branchless_cmov(int* arr, int q) {
     uint8_t idx = (uint8_t(1) << 5) - 1;
     idx ^= ((arr[idx] < q) << 5) | (uint8_t(1) << 4);
@@ -123,9 +133,9 @@ int main() {
     using std::chrono::high_resolution_clock;
     using std::chrono::nanoseconds;
 
-    std::cout << "binary\tbranchless_cmov\tbranchless_sub\tbranchless_sub_fix\tlinear_scan\tlinear_scan_cmov\tlinear_scan_sub" << std::endl;
+    std::cout << "binary\tbranchless_cmov\tbranchless_sub\tbranchless_sub_fix\tlinear_scan\tlinear_scan_cmov\tlinear_scan_sub\ttemplated_cmov" << std::endl;
 
-    for (size_t i = 0; i < 1000; i++) {
+    for (size_t j = 0; j < 1000; j++) {
         for (int i = 0; i < 64 + 100; i++) {
             std::cin >> arr[i];
         }
@@ -184,11 +194,19 @@ int main() {
             g += linear_scan_sub(arr, arr[qi]);
         }
         t2 = high_resolution_clock::now();
-        std::cout << (double)duration_cast<nanoseconds>(t2 - t1).count() / 100 << std::endl;
+        std::cout << (double)duration_cast<nanoseconds>(t2 - t1).count() / 100 << "\t";
 
-        if (a != b || b != c || c != d || d != e || e != f || f != g) {
-            std::cerr << "Error on line " << i << "\n";
-            std::cerr << a << ", " << b << ", " << c << ", " << d << ", " << e << std::endl;
+        uint32_t h = 0;
+        t1 = high_resolution_clock::now();
+        for (int qi = 64; qi < 64 + 100; qi++) {
+            h += templated_cmov(arr, arr[qi]);
+        }
+        t2 = high_resolution_clock::now();
+        std::cout << double(duration_cast<nanoseconds>(t2 - t1).count()) / 100 << std::endl;
+
+        if (a != b || b != c || c != d || d != e || e != f || f != g || g != h) {
+            std::cerr << "Error on line " << j << "\n";
+            std::cerr << a << ", " << b << ", " << c << ", " << d << ", " << e << ", " << f << ", " << g << ", " << h << std::endl;
             exit(1);
         }
     }//*/
