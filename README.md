@@ -33,7 +33,7 @@ Defaults to c++ 20 standard but should compile fine with older versions as well.
 
 Running menchmarks on my Intel Core i5-6200U laptop results in 
 
-![](resulst.png)
+![](results.png)
 
 
 -----------------------------------------------------
