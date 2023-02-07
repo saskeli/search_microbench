@@ -15,6 +15,14 @@ Contains 7 implementations:
 * `linear_scan_sub` uses uses sign bit and subtraction instead of conditional moves.
 * `templated_cmov` uses templating to do branching efficiently.
 
+## Citing
+
+If you find this michrobenchmark usefull, please cite:
+
+D. Diaz, S. Dönges, S. Puglisi and L. Salmela. Simple Runs-bounded FM-index Designs are Fast. 2023
+
+Better information hopefully following soon (Feb 2023).
+
 ## Running
 
 Run default stuff with `make`. Will output timings to "results.tsv".
