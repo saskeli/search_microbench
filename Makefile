@@ -6,7 +6,7 @@ CMAKE_OPT=-DBENCHMARK_DOWNLOAD_DEPENDENCIES=on -DCMAKE_BUILD_TYPE=Release
 TEST = -lpthread -DGTEST_ON -isystem googletest/googletest/include -pthread -L googletest/build/lib
 
 bench: bench.cpp searchers.hpp benchmark/build/lib/libgtest.a
-	g++ -std=c++2a -Wall -Wextra -DNDEBUG -pedantic -Wshadow -Ofast -march=native bench.cpp $(BENCH) -o bench
+	g++ -std=c++2a -Wfatal-errors -Wall -Wextra -DNDEBUG -pedantic -Wshadow -Ofast -march=native bench.cpp $(BENCH) -o bench
 
 bf_test: bf_test.cpp searchers.hpp
 	g++ -std=c++2a -Wall -Wextra -DNDEBUG -pedantic -Wshadow -Ofast -march=native bf_test.cpp -o bf_test
