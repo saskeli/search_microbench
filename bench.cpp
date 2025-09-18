@@ -9,8 +9,8 @@
 
 #include "searchers.hpp"
 
-#define SEARCH_BENCH(type, ell)                                    \
-  void BM_##type##ell(benchmark::State& state) {                   \
+#define SEARCH_BENCH(type, dtyp, ityp, ell)                                    \
+  void BM_##type##dtyp##ityp##ell(benchmark::State& state) {                   \
     std::array<int, ell> arr;                                      \
     std::array<int, 100000> q_arr;                                 \
     std::mt19937 gen;                                              \
@@ -35,16 +35,16 @@
     }                                                              \
     state.SetLabel(std::to_string(checksum));                      \
   }                                                                \
-  BENCHMARK(BM_##type##ell);
+  BENCHMARK(BM_##type##dtyp##ityp##ell);
 
 #define SEARCHTYP(typ)  \
-  SEARCH_BENCH(typ, 2)  \
-  SEARCH_BENCH(typ, 4)  \
-  SEARCH_BENCH(typ, 8)  \
-  SEARCH_BENCH(typ, 16) \
-  SEARCH_BENCH(typ, 32) \
-  SEARCH_BENCH(typ, 64) \
-  SEARCH_BENCH(typ, 128)
+  SEARCH_BENCH(typ, int32_t, uint8_t, 2)  \
+  SEARCH_BENCH(typ, int32_t, uint8_t, 4)  \
+  SEARCH_BENCH(typ, int32_t, uint8_t, 8)  \
+  SEARCH_BENCH(typ, int32_t, uint8_t, 16) \
+  SEARCH_BENCH(typ, int32_t, uint8_t, 32) \
+  SEARCH_BENCH(typ, int32_t, uint8_t, 64) \
+  SEARCH_BENCH(typ, int32_t, uint8_t, 128)
 
 SEARCHTYP(branchless_sub)
 SEARCHTYP(branchless_sub_fix)
