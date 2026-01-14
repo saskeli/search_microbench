@@ -9,47 +9,6 @@
 
 #include "searchers.hpp"
 
-#define SEARCH_BENCH(type, dtyp, ityp, ell)                        \
-  void BM_##type##dtyp##ityp##ell(benchmark::State& state) {       \
-    std::array<int, ell> arr;                                      \
-    std::array<int, 100000> q_arr;                                 \
-    std::mt19937_64 gen;                                           \
-    std::uniform_int_distribution<int> uniform_dist(0, INT32_MAX); \
-    uint64_t checksum = 0;                                         \
-    int lim = 0;                                                   \
-    for (size_t i = 0; i < ell; ++i) {                             \
-      arr[i] = uniform_dist(gen);                                  \
-      lim = std::max(lim, arr[i]);                                 \
-    }                                                              \
-    std::uniform_int_distribution<int> q_dist(0, lim - 2);         \
-    for (size_t i = 0; i < q_arr.size(); ++i) {                    \
-      q_arr[i] = q_dist(gen);                                      \
-    }                                                              \
-    std::sort(arr.begin(), arr.end());                             \
-    for (auto _ : state) {                                         \
-      checksum = 0;                                                \
-      for (auto q : q_arr) {                                       \
-        q += (checksum & 0b1);                                     \
-        checksum += type<ell>(arr.data(), q);                      \
-      }                                                            \
-    }                                                              \
-    state.SetLabel(std::to_string(checksum));                      \
-  }                                                                \
-  BENCHMARK(BM_##type##dtyp##ityp##ell);
-
-#define SEARCHTYP(typ)                    \
-  SEARCH_BENCH(typ, int32_t, uint8_t, 2)  \
-  SEARCH_BENCH(typ, int32_t, uint8_t, 4)  \
-  SEARCH_BENCH(typ, int32_t, uint8_t, 8)  \
-  SEARCH_BENCH(typ, int32_t, uint8_t, 16) \
-  SEARCH_BENCH(typ, int32_t, uint8_t, 32) \
-  SEARCH_BENCH(typ, int32_t, uint8_t, 64) \
-  SEARCH_BENCH(typ, int32_t, uint8_t, 128)
-
-SEARCHTYP(branchless_sub)
-SEARCHTYP(branchless_sub_fix)
-SEARCHTYP(linear_scan_sub)
-
 template <class dtype>
 constexpr dtype max_val() {
   return std::is_signed<dtype>::value
@@ -100,7 +59,10 @@ void run_bench(benchmark::State& state, auto q_f) {
   TYPED_BENCH(typ, dtyp, uint8_t, 128)  \
   TYPED_BENCH(typ, dtyp, uint16_t, 256) \
   TYPED_BENCH(typ, dtyp, uint16_t, 512) \
-  TYPED_BENCH(typ, dtyp, uint16_t, 1024)
+  TYPED_BENCH(typ, dtyp, uint16_t, 1024) \
+  TYPED_BENCH(typ, dtyp, uint16_t, 2048) \
+  TYPED_BENCH(typ, dtyp, uint16_t, 4096) \
+  TYPED_BENCH(typ, dtyp, uint16_t, 8192)
 
 #define SEARCH_DTYPED_BENCH(typ)    \
   SEARCH_TYPED_BENCH(typ, int8_t)   \
@@ -118,5 +80,18 @@ SEARCH_DTYPED_BENCH(templated_cmov)
 SEARCH_DTYPED_BENCH(branchless_cmov)
 SEARCH_DTYPED_BENCH(linear_scan)
 SEARCH_DTYPED_BENCH(linear_scan_cmov)
+
+SEARCH_TYPED_BENCH(branchless_sub, int8_t)
+SEARCH_TYPED_BENCH(branchless_sub, int16_t)
+SEARCH_TYPED_BENCH(branchless_sub, int32_t)
+SEARCH_TYPED_BENCH(branchless_sub, int64_t)
+SEARCH_TYPED_BENCH(linear_scan_sub, int8_t)
+SEARCH_TYPED_BENCH(linear_scan_sub, int16_t)
+SEARCH_TYPED_BENCH(linear_scan_sub, int32_t)
+SEARCH_TYPED_BENCH(linear_scan_sub, int64_t)
+SEARCH_TYPED_BENCH(templated_sub, int8_t)
+SEARCH_TYPED_BENCH(templated_sub, int16_t)
+SEARCH_TYPED_BENCH(templated_sub, int32_t)
+SEARCH_TYPED_BENCH(templated_sub, int64_t)
 
 BENCHMARK_MAIN();

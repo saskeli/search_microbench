@@ -1,5 +1,6 @@
-#include <bitset>
 #include <cstdint>
+#include <type_traits>
+#include <emmintrin.h>
 
 template <class T = int, class index_t = uint8_t, index_t ell = 64>
 index_t binary(const T* arr, const T q) {
@@ -19,7 +20,7 @@ index_t binary(const T* arr, const T q) {
 }
 
 template <class T = int, class index_t = uint8_t, index_t ell = 64>
-index_t templated_binary(const T* arr, const T q) {
+inline index_t templated_binary(const T* arr, const T q) {
   static_assert(__builtin_popcountll(ell) == 1);
   static_assert(ell >= 2);
   if constexpr (ell == 2) {
@@ -51,6 +52,22 @@ index_t templated_cmov(const T* arr, const T q) {
 }
 
 template <class T = int, class index_t = uint8_t, index_t ell = 64>
+index_t templated_sub(const T* arr, const T q) {
+  static_assert(__builtin_popcountll(ell) == 1);
+  static_assert(std::is_signed<T>::value);
+  static_assert(ell >= 2);
+  const constexpr index_t mag_bits = sizeof(T)* 8 - 1;
+  const constexpr uint64_t MASK = uint64_t(1) << mag_bits;
+  if constexpr (ell == 2) {
+    return ((arr[0] - q) & MASK) >> (mag_bits);
+  } else {
+    index_t offset = (((arr[ell / 2 - 1] - q) & MASK) >> mag_bits) * (ell / 2);
+    index_t res = templated_sub<T, index_t, ell / 2>(arr + offset, q);
+    return res + offset;
+  }
+}
+
+template <class T = int, class index_t = uint8_t, index_t ell = 64>
 index_t branchless_cmov(const T* arr, const T q) {
   static_assert(__builtin_popcountll(ell) == 1);
   static_assert(ell >= 2);
@@ -61,38 +78,16 @@ index_t branchless_cmov(const T* arr, const T q) {
   return idx;
 }
 
-template <uint8_t ell = 64>
-uint8_t branchless_sub(int* arr, int q) {
+template <class T = int, class index_t = uint8_t, index_t ell = 64>
+index_t branchless_sub(const T* arr, const T q) {
   static_assert(__builtin_popcount(ell) == 1);
-  static_assert(ell <= 128);
+  static_assert(std::is_signed<T>::value);
   static_assert(ell >= 2);
-  constexpr uint32_t MASK = uint32_t(1) << 31;
-  uint8_t idx = (ell >> 1) - 1;
-  for (uint8_t i = ell / 2; i > 0; i /= 2) {
-    idx ^= (((arr[idx] - q) & MASK) >> (31 - __builtin_ctz(i))) | (i / 2);
-  }
-  return idx;
-}
-
-template <uint8_t ell = 64>
-uint8_t branchless_sub_fix(int* arr, uint32_t q) {
-  static_assert(__builtin_popcount(ell) == 1);
-  static_assert(ell <= 128);
-  static_assert(ell >= 2);
-  constexpr uint32_t MASK = uint32_t(1) << 31;
-  uint8_t idx = (ell >> 1) - 1;
-  uint32_t v1;
-  uint32_t v2;
-  uint32_t res;
-  for (uint8_t i = ell / 2; i > 0; i /= 2) {
-    v1 = arr[idx];
-    v2 = q;
-    res = MASK & v1 & v2;
-    v1 ^= res;
-    v2 ^= res;
-    v1 |= (MASK - 1) * (v1 >> 31);
-    v1 &= (MASK - 1);
-    idx ^= (((v1 - v2) & MASK) >> (31 - __builtin_ctz(i))) | (i / 2);
+  const constexpr index_t mag_bits = sizeof(T)* 8 - 1;
+  const constexpr uint64_t MASK = uint64_t(1) << mag_bits;
+  index_t idx = (ell >> 1) - 1;
+  for (index_t i = ell / 2; i > 0; i /= 2) {
+    idx ^= (((arr[idx] - q) & MASK) >> (mag_bits - __builtin_ctz(i))) | (i / 2);
   }
   return idx;
 }
@@ -118,14 +113,23 @@ index_t linear_scan_cmov(const T* arr, const T q) {
   return res;
 }
 
-template <uint64_t ell = 64>
-uint8_t linear_scan_sub(int* arr, int q) {
+template <class T = int, class index_t = uint8_t, index_t ell = 64>
+index_t linear_scan_sub(const T* arr, const T q) {
   static_assert(__builtin_popcount(ell) == 1);
-  static_assert(ell <= 128);
   static_assert(ell >= 2);
-  uint8_t res = 0;
-  for (uint8_t idx = 0; idx < ell; idx++) {
-    res += uint32_t(arr[idx] - q) >> 31;
+  static_assert(std::is_signed<T>::value);
+  const constexpr index_t r_shift = sizeof(T) * 8 - 1;
+  index_t res = 0;
+  for (index_t idx = 0; idx < ell; idx++) {
+    if constexpr (sizeof(T) == 1) {
+      res += uint8_t(arr[idx] - q) >> r_shift;
+    } else if constexpr (sizeof(T) == 2) {
+      res += uint16_t(arr[idx] - q) >> r_shift;
+    } else if constexpr (sizeof(T) == 4) {
+      res += uint32_t(arr[idx] - q) >> r_shift;
+    } else {
+      res += uint64_t(arr[idx] - q) >> r_shift;
+    }
   }
   return res;
 }
