@@ -10,7 +10,7 @@ bench: bench.cpp searchers.hpp benchmark/build/lib/libgtest.a
 	g++ $(CFLAGS) -DNDEBUG -Ofast bench.cpp $(BENCH) -o bench
 
 profile: profile.cpp searchers.hpp counters/counters.hpp
-	g++ $(CFLAGS) -DNDEBUG -Ofast branchless.cpp -o profile
+	g++ $(CFLAGS) -DNDEBUG -Ofast profile.cpp -o profile
 
 debug_bench: bench.cpp searchers.hpp benchmark/build/lib/libgtest.a
 	g++ $(CFLAGS) -DDEBUG -O1 -g bench.cpp $(BENCH) -o debug_bench
