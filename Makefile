@@ -9,7 +9,7 @@ TEST = -lpthread -DGTEST_ON -isystem googletest/googletest/include -pthread -L g
 bench: bench.cpp searchers.hpp benchmark/build/lib/libgtest.a
 	g++ $(CFLAGS) -DNDEBUG -Ofast bench.cpp $(BENCH) -o bench
 
-profile: branchless.cpp searchers.hpp counters/counters.hpp
+profile: profile.cpp searchers.hpp counters/counters.hpp
 	g++ $(CFLAGS) -DNDEBUG -Ofast branchless.cpp -o profile
 
 debug_bench: bench.cpp searchers.hpp benchmark/build/lib/libgtest.a
