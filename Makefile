@@ -1,4 +1,4 @@
-.PHONY: run clean perf
+.PHONY: clean all
 
 CFLAGS=-march=native -std=c++2a -Wall -Wextra -Wshadow -pedantic
 BENCH=-isystem benchmark/include -Lbenchmark/build/src -lbenchmark -lpthread
@@ -6,11 +6,19 @@ CMAKE_OPT=-DBENCHMARK_DOWNLOAD_DEPENDENCIES=on -DCMAKE_BUILD_TYPE=Release
 
 TEST = -lpthread -DGTEST_ON -isystem googletest/googletest/include -pthread -L googletest/build/lib
 
+all: bench profile bench_avx profile_avx
+
 bench: bench.cpp searchers.hpp benchmark/build/lib/libgtest.a
-	g++ $(CFLAGS) -DNDEBUG -Ofast bench.cpp $(BENCH) -o bench
+	g++ $(CFLAGS) -DNDEBUG -DDEPENDENCE_INSERTION -Ofast bench.cpp $(BENCH) -o bench
 
 profile: profile.cpp searchers.hpp counters/counters.hpp
-	g++ $(CFLAGS) -DNDEBUG -Ofast profile.cpp -o profile
+	g++ $(CFLAGS) -DNDEBUG -DDEPENDENCE_INSERTION -Ofast profile.cpp -o profile
+
+bench_avx: bench.cpp searchers.hpp benchmark/build/lib/libgtest.a
+	g++ $(CFLAGS) -DNDEBUG -Ofast bench.cpp $(BENCH) -o bench_avx
+
+profile_avx: profile.cpp searchers.hpp counters/counters.hpp
+	g++ $(CFLAGS) -DNDEBUG -Ofast profile.cpp -o profile_avx
 
 debug_bench: bench.cpp searchers.hpp benchmark/build/lib/libgtest.a
 	g++ $(CFLAGS) -DDEBUG -O1 -g bench.cpp $(BENCH) -o debug_bench
@@ -45,7 +53,8 @@ test: test/test
 	test/test $(ARG)
 
 clean:
-	rm -f data.txt
 	rm -f bench
-	rm -f results.tsv
-	rm -f p_bench
+	rm -f profile
+	rm -f bench_avx
+	rm -f profile_avx
+	rm -f test/test

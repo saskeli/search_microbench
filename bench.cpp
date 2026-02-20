@@ -26,19 +26,26 @@ void run_bench(benchmark::State& state, auto q_f) {
   }
   std::sort(arr.begin(), arr.end());
   std::array<T, 100000> q_arr;
-  std::uniform_int_distribution<T> q_dist(0, arr[arr.size() - 1] - 2);
-  for (size_t i = 0; i < q_arr.size(); ++i) {
-    q_arr[i] = q_dist(gen);
-  }
-  uint64_t checksum = 0;
+  bool checksum_set = false;
   for (auto _ : state) {
-    checksum = 0;
+    uint64_t checksum = 0;
     for (auto q : q_arr) {
+#ifdef DEPENDENCE_INSERTION
       q += checksum & 0b1;
+#endif
       checksum += q_f(arr, q);
     }
+    state.PauseTiming();
+    if (not checksum_set) {
+      state.SetLabel(std::to_string(checksum));
+      checksum_set = true;
+    }
+    std::uniform_int_distribution<T> q_dist(0, arr[arr.size() - 1] - 2);
+    for (size_t i = 0; i < q_arr.size(); ++i) {
+      q_arr[i] = q_dist(gen);
+    }
+    state.ResumeTiming();
   }
-  state.SetLabel(std::to_string(checksum));
 }
 
 #define TYPED_BENCH(typ, dtyp, ityp, ell)                                 \
@@ -49,16 +56,16 @@ void run_bench(benchmark::State& state, auto q_f) {
   }                                                                       \
   BENCHMARK(BM_##typ##dtyp##ityp##ell);
 
-#define SEARCH_TYPED_BENCH(typ, dtyp)   \
-  TYPED_BENCH(typ, dtyp, uint8_t, 2)    \
-  TYPED_BENCH(typ, dtyp, uint8_t, 4)    \
-  TYPED_BENCH(typ, dtyp, uint8_t, 8)    \
-  TYPED_BENCH(typ, dtyp, uint8_t, 16)   \
-  TYPED_BENCH(typ, dtyp, uint8_t, 32)   \
-  TYPED_BENCH(typ, dtyp, uint8_t, 64)   \
-  TYPED_BENCH(typ, dtyp, uint8_t, 128)  \
-  TYPED_BENCH(typ, dtyp, uint16_t, 256) \
-  TYPED_BENCH(typ, dtyp, uint16_t, 512) \
+#define SEARCH_TYPED_BENCH(typ, dtyp)    \
+  TYPED_BENCH(typ, dtyp, uint8_t, 2)     \
+  TYPED_BENCH(typ, dtyp, uint8_t, 4)     \
+  TYPED_BENCH(typ, dtyp, uint8_t, 8)     \
+  TYPED_BENCH(typ, dtyp, uint8_t, 16)    \
+  TYPED_BENCH(typ, dtyp, uint8_t, 32)    \
+  TYPED_BENCH(typ, dtyp, uint8_t, 64)    \
+  TYPED_BENCH(typ, dtyp, uint8_t, 128)   \
+  TYPED_BENCH(typ, dtyp, uint16_t, 256)  \
+  TYPED_BENCH(typ, dtyp, uint16_t, 512)  \
   TYPED_BENCH(typ, dtyp, uint16_t, 1024) \
   TYPED_BENCH(typ, dtyp, uint16_t, 2048) \
   TYPED_BENCH(typ, dtyp, uint16_t, 4096) \

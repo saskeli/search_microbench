@@ -37,7 +37,11 @@ void run_prof(count_t& counter, uint64_t* data, uint64_t seed, cb_t cb) {
   uint64_t checksum = 0;
   counter.clear();
   for (size_t i = 0; i < Q_COUNT; ++i) {
-    checksum += cb(arr.data(), q_a[i]);
+    dtype q = q_a[i];
+#ifdef DEPENDENCE_INSERTION
+    q += (checksum & 0b1);
+#endif
+    checksum += cb(arr.data(), q);
   }
   counter.accumulate();
   counter.output_counters(0, Q_COUNT);
@@ -85,7 +89,10 @@ int main(int argc, char const* argv[]) {
     seed = std::stoull(argv[1]);
   }
   uint64_t* data = (uint64_t*)malloc(Q_COUNT * sizeof(uint64_t));
-  count::Default counter;
+  count::Counters<false, 1, count::Counter::instructions,
+                  count::Counter::branches, count::Counter::branch_miss,
+                  count::Counter::L1D_miss, count::Counter::IPC>
+      counter;
   SEARCH_DTYPED_PROF(binary)
   SEARCH_DTYPED_PROF(templated_binary)
   SEARCH_DTYPED_PROF(templated_cmov)
