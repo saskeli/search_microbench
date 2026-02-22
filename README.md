@@ -30,23 +30,30 @@ In 21st International Symposium on Experimental Algorithms (SEA 2023). Leibniz I
 
 ## Usage
 
+Just do `make -j run` after cloning. This will download dependences, compile all the binaries, and run benchmark with outputs to `<name of cpu>(_avx)?.(prof|res)`.
+
+Or more manually:
+
 * Clone the repo (`git clone https://github.com/saskeli/search_microbench.git`)
-* Compile google benchmarks with `make bench` \
-  Dependences should be downloaded and compiled atuomatically
+* Run unit tests with `make test` \
+  Should download Google test dependence
+* Compile google benchmarks with `make bench` or `make bench_avx` \
+  Dependences should be downloaded and compiled automatically
 * Compile profiling binary with `make profile` \
-  **note**: profiling will only work on systems with "modern" linux kernels with performance counters accessible from user space.
-* Run benchmarks with e.g. `./bench | tee benchmark.txt`
-* Run profiling with e.g. `./profile | tee profiling.txt`
+  **note**: profiling will only work on systems with "modern" linux kernels with performance counters accessible from user space. \
+  **note 2**: Profiling on arm will produce more noisy results due to necessary overhead in reading performance counters.
+* Run benchmarks with e.g. `./bench | tee benchmark.res`
+* Run profiling with e.g. `./profile | tee profiling.prof`
 
 ## "Requirements"
 
-* Defaults to c++ 20 standard but should compile fine with older versions as well.
+* Defaults to c++ 20 standard but may compile fine with older versions as well.
 * Assumes a newish version of GCC. (may work with clang as well)
 * [Google test](https://github.com/google/googletest) for running tests
 * [Google benchmark](https://github.com/google/benchmark) for timing
 * [counters](https://github.com/saskeli/counters) for accessing performance counters for profiling
 
-Profiling will likely only work on x86 machines running "modern" linux.
+Profiling will only work on machines running "modern" linux.
 
 -----------------------------------------------------
 

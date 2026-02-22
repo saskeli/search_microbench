@@ -2,6 +2,11 @@
 perf.tsv
 results.tsv
 data.txt
+*.res
+*.prof
+*.png
+*.pdf
+*.csv
 
 # jupyter stuff
 .ipynb_checkpoints/
@@ -39,4 +44,11 @@ data.txt
 *.out
 *.app
 bench
-p_bench
+profile
+bench_avx
+profile_avx
+bf_test
+test/test
+
+# Vscode
+.vscode/
