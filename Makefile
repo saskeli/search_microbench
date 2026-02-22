@@ -1,8 +1,6 @@
 .PHONY: clean all run
 
-ifndef MACHINE
-MACHINE=$(shell hostname)
-endif
+MACHINE=$(shell lscpu | grep -o -P "(?<=Model name:(\s?){30})\w.*(?= CPU)" | sed -E 's/\(\w+\)//g' | sed -E 's/\s/_/g')
 
 CFLAGS=-march=native -std=c++2a -Wall -Wextra -Wshadow -pedantic
 BENCH=-isystem benchmark/include -Lbenchmark/build/src -lbenchmark -lpthread
@@ -60,7 +58,7 @@ run: all
 	./bench | tee $(MACHINE).res
 	./profile | tee $(MACHINE).prof
 	./bench_avx | tee $(MACHINE)_avx.res
-	./profile_avx | tee $(MACINE)_avx.prof
+	./profile_avx | tee $(MACHINE)_avx.prof
 
 clean:
 	rm -f bench
