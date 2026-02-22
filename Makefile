@@ -1,4 +1,8 @@
-.PHONY: clean all
+.PHONY: clean all run
+
+ifndef MACHINE
+MACHINE=$(shell hostname)
+endif
 
 CFLAGS=-march=native -std=c++2a -Wall -Wextra -Wshadow -pedantic
 BENCH=-isystem benchmark/include -Lbenchmark/build/src -lbenchmark -lpthread
@@ -51,6 +55,12 @@ test/test: googletest/build/lib/libgtest_main.a test/test.cpp searchers.hpp
 
 test: test/test
 	test/test $(ARG)
+
+run: all
+	./bench | tee $(MACHINE).res
+	./profile | tee $(MACHINE).prof
+	./bench_avx | tee $(MACHINE)_avx.res
+	./profile_avx | tee $(MACINE)_avx.prof
 
 clean:
 	rm -f bench
