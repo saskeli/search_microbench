@@ -1,6 +1,6 @@
 .PHONY: clean all run
 
-MACHINE=$(shell lscpu | grep -o -P "(?<=Model name:(\s?){30})\w.*(?= CPU)" | sed -E 's/\(\w+\)//g' | sed -E 's/\s/_/g')
+MACHINE=$(shell lscpu | grep -o -P "(?<=Model name:).*" | sed -E 's/\s+//; s/\(\w+\)//g; s/\s/_/g')
 
 CFLAGS=-march=native -std=c++2a -Wall -Wextra -Wshadow -pedantic
 BENCH=-isystem benchmark/include -Lbenchmark/build/src -lbenchmark -lpthread
