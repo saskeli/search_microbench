@@ -83,11 +83,12 @@ index_t branchless_sub(const T* arr, const T q) {
   static_assert(__builtin_popcount(ell) == 1);
   static_assert(std::is_signed<T>::value);
   static_assert(ell >= 2);
-  const constexpr index_t mag_bits = sizeof(T)* 8 - 1;
+  const constexpr index_t mag_bits = 63;
   const constexpr uint64_t MASK = uint64_t(1) << mag_bits;
   index_t idx = (ell >> 1) - 1;
+  int64_t w_q = q;
   for (index_t i = ell / 2; i > 0; i /= 2) {
-    idx ^= (((arr[idx] - q) & MASK) >> (mag_bits - __builtin_ctz(i))) | (i / 2);
+    idx ^= (((arr[idx] - w_q) & MASK) >> (mag_bits - __builtin_ctz(i))) | (i / 2);
   }
   return idx;
 }

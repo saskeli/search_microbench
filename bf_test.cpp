@@ -8,9 +8,8 @@
 #include "searchers.hpp"
 
 std::array<std::string, 8> searcher_names = {
-    "templated_binary",   "templated_cmov",   "branchless_cmov",
-    "linear_scan",        "linear_scan_cmov", "branchless_sub",
-    "linear_scan_sub"};
+    "templated_binary", "templated_cmov", "branchless_cmov", "linear_scan",
+    "linear_scan_cmov", "branchless_sub", "linear_scan_sub"};
 
 template <class dtype>
 constexpr dtype max_val() {
@@ -25,7 +24,7 @@ void run_test(const std::string dtype_name) {
   std::array<dtype, 100000> q_a;
   std::mt19937_64 gen;
   dtype m_val = max_val<dtype>();
-  const constexpr size_t type_c = std::is_same<dtype, int>::value ? 7 : 5;
+  const constexpr size_t type_c = std::is_signed<dtype>::value ? 7 : 5;
   std::array<uint16_t, type_c> results;
   std::uniform_int_distribution<dtype> uniform_dist(0, m_val);
   for (size_t i = 0; i < arr.size(); ++i) {
@@ -45,7 +44,7 @@ void run_test(const std::string dtype_name) {
     results[3] = linear_scan<dtype, uint16_t, size>(arr.data(), q);
     results[4] = linear_scan_cmov<dtype, uint16_t, size>(arr.data(), q);
 
-    if constexpr (std::is_same<dtype, int>::value) {
+    if constexpr (std::is_signed<dtype>::value) {
       results[5] = branchless_sub<dtype, uint16_t, size>(arr.data(), q);
       results[6] = linear_scan_sub<dtype, uint16_t, size>(arr.data(), q);
     }
@@ -59,12 +58,18 @@ void run_test(const std::string dtype_name) {
           } else {
             std::cout << ", ";
           }
-          std::cout << e;
+          std::cout << (std::is_signed<dtype>::value ? int64_t(e)
+                                                     : uint64_t(e));
         }
         std::cout << "};" << std::endl;
-        std::cout << dtype_name << " q = " << q << ";" << std::endl;
+        std::cout << dtype_name << " q = "
+                  << (std::is_signed<dtype>::value ? int64_t(q) : uint64_t(q))
+                  << ";" << std::endl;
         std::cout << "uint16_t res = " << bin_res << ";" << std::endl;
-        std::cerr << "\n" << searcher_names[i] << ": " << q << " -> " << results[i] << std::endl;
+        std::cerr << "\n"
+                  << searcher_names[i] << ": "
+                  << (std::is_signed<dtype>::value ? int64_t(q) : uint64_t(q))
+                  << " -> " << results[i] << std::endl;
         exit(1);
       }
     }
@@ -74,25 +79,25 @@ void run_test(const std::string dtype_name) {
 #define TEST_S(dtyp, si) run_test<dtyp, si>(#dtyp);
 
 #define TEST_D(dtyp) \
-TEST_S(dtyp, 2) \
-TEST_S(dtyp, 4) \
-TEST_S(dtyp, 8) \
-TEST_S(dtyp, 16) \
-TEST_S(dtyp, 32) \
-TEST_S(dtyp, 64) \
-TEST_S(dtyp, 128) \
-TEST_S(dtyp, 256) \
-TEST_S(dtyp, 512) \
-TEST_S(dtyp, 1024) 
+  TEST_S(dtyp, 2)    \
+  TEST_S(dtyp, 4)    \
+  TEST_S(dtyp, 8)    \
+  TEST_S(dtyp, 16)   \
+  TEST_S(dtyp, 32)   \
+  TEST_S(dtyp, 64)   \
+  TEST_S(dtyp, 128)  \
+  TEST_S(dtyp, 256)  \
+  TEST_S(dtyp, 512)  \
+  TEST_S(dtyp, 1024)
 
-#define R_TEST() \
-TEST_D(uint8_t) \
-TEST_D(uint32_t) \
-TEST_D(uint64_t) \
-TEST_D(int8_t) \
-TEST_D(int16_t) \
-TEST_D(int32_t) \
-TEST_D(int64_t) 
+#define R_TEST()   \
+  TEST_D(uint8_t)  \
+  TEST_D(uint32_t) \
+  TEST_D(uint64_t) \
+  TEST_D(int8_t)   \
+  TEST_D(int16_t)  \
+  TEST_D(int32_t)  \
+  TEST_D(int64_t)
 
 int main() {
   uint64_t epoch = 0;
