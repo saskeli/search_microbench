@@ -24,7 +24,7 @@ void run_test(const std::string dtype_name) {
   std::array<dtype, 100000> q_a;
   std::mt19937_64 gen;
   dtype m_val = max_val<dtype>();
-  const constexpr size_t type_c = std::is_signed<dtype>::value ? 7 : 5;
+  const constexpr size_t type_c = std::is_signed<dtype>::value ? 8 : 6;
   std::array<uint16_t, type_c> results;
   std::uniform_int_distribution<dtype> uniform_dist(0, m_val);
   for (size_t i = 0; i < arr.size(); ++i) {
@@ -43,10 +43,11 @@ void run_test(const std::string dtype_name) {
     results[2] = branchless_cmov<dtype, uint16_t, size>(arr.data(), q);
     results[3] = linear_scan<dtype, uint16_t, size>(arr.data(), q);
     results[4] = linear_scan_cmov<dtype, uint16_t, size>(arr.data(), q);
+    results[5] = search(arr, q);
 
     if constexpr (std::is_signed<dtype>::value) {
-      results[5] = branchless_sub<dtype, uint16_t, size>(arr.data(), q);
-      results[6] = linear_scan_sub<dtype, uint16_t, size>(arr.data(), q);
+      results[6] = branchless_sub<dtype, uint16_t, size>(arr.data(), q);
+      results[7] = linear_scan_sub<dtype, uint16_t, size>(arr.data(), q);
     }
     for (size_t i = 0; i < type_c; ++i) {
       if (bin_res != results[i]) {

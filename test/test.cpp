@@ -40,6 +40,7 @@ BASIC_TEST(branchless_sub)
 BASIC_TEST(linear_scan)
 BASIC_TEST(linear_scan_cmov)
 BASIC_TEST(linear_scan_sub)
+BASIC_TEST(search)
 
 TEST(Case, debug1) {
   const uint16_t size = 64;
@@ -75,6 +76,9 @@ TEST(Case, debug1) {
   ASSERT_EQ(actual, res);
   actual = branchless_sub<int, uint8_t, size>(arr.data(), q);
   ASSERT_EQ(actual, res);
+  actual = search<int, uint8_t, size>(arr.data(), q);
+  ASSERT_EQ(actual, res);
+  actual = search<decltype(arr), uint8_t>(arr, q);
 }
 
 TEST(Case, debug2) {
@@ -97,6 +101,10 @@ TEST(Case, debug2) {
     b = branchless_cmov<int, uint16_t, size>(arr.data(), i);
     ASSERT_EQ(a, b);
     b = branchless_sub<int, uint16_t, size>(arr.data(), i);
+    ASSERT_EQ(a, b);
+    b = search<int, uint16_t, size>(arr.data(), i);
+    ASSERT_EQ(a, b);
+    b = search<decltype(arr), uint16_t>(arr, i);
     ASSERT_EQ(a, b);
   }
 }
@@ -159,4 +167,7 @@ TEST(Case, debug3) {
   ASSERT_EQ(actual, res);
   actual = branchless_sub<int8_t, uint16_t, size>(arr.data(), q);
   ASSERT_EQ(actual, res);
+  actual = search<int8_t, uint16_t, size>(arr.data(), q);
+  ASSERT_EQ(actual, res);
+  actual = search(arr, q);
 }

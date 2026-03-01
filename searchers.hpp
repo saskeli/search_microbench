@@ -1,6 +1,7 @@
+#include <emmintrin.h>
+
 #include <cstdint>
 #include <type_traits>
-#include <emmintrin.h>
 
 template <class T = int, class index_t = uint8_t, index_t ell = 64>
 index_t binary(const T* arr, const T q) {
@@ -56,7 +57,7 @@ index_t templated_sub(const T* arr, const T q) {
   static_assert(__builtin_popcountll(ell) == 1);
   static_assert(std::is_signed<T>::value);
   static_assert(ell >= 2);
-  const constexpr index_t mag_bits = sizeof(T)* 8 - 1;
+  const constexpr index_t mag_bits = sizeof(T) * 8 - 1;
   const constexpr uint64_t MASK = uint64_t(1) << mag_bits;
   if constexpr (ell == 2) {
     return ((arr[0] - q) & MASK) >> (mag_bits);
@@ -88,7 +89,8 @@ index_t branchless_sub(const T* arr, const T q) {
   index_t idx = (ell >> 1) - 1;
   int64_t w_q = q;
   for (index_t i = ell / 2; i > 0; i /= 2) {
-    idx ^= (((arr[idx] - w_q) & MASK) >> (mag_bits - __builtin_ctz(i))) | (i / 2);
+    idx ^=
+        (((arr[idx] - w_q) & MASK) >> (mag_bits - __builtin_ctz(i))) | (i / 2);
   }
   return idx;
 }
@@ -133,4 +135,55 @@ index_t linear_scan_sub(const T* arr, const T q) {
     }
   }
   return res;
+}
+
+template <class T = int, class index_t = uint8_t, index_t ell = 64>
+index_t search(const T* arr, const T q) {
+#if defined(__aarch64__) || defined(__arm__)
+  if constexpr (sizeof(T) <= 1) {
+    if constexpr (ell >= 256) {
+      return templated_binary<T, index_t, ell>(arr, q);
+    } else {
+      return linear_scan_cmov<T, index_t, ell>(arr, q);
+    }
+  } else  {
+    if constexpr (ell >= 256) {
+      return templated_cmov<T, index_t, ell>(arr, q);
+    } else {
+      return templated_binary<T, index_t, ell>(arr, q);
+    }
+  }
+#else
+  if constexpr (sizeof(T) == 1) {
+    if constexpr (ell >= 512) {
+      return templated_cmov<T, index_t, ell>(arr, q);
+    } else {
+      return linear_scan_cmov<T, index_t, ell>(arr, q);
+    }
+  } else if constexpr (sizeof(T) <= 2) {
+    if constexpr (ell >= 1024) {
+      return templated_cmov<T, index_t, ell>(arr, q);
+    } else {
+      return linear_scan_cmov<T, index_t, ell>(arr, q);
+    }
+  } else if constexpr (sizeof(T) <= 4) {
+    if constexpr (ell >= 128) {
+      return templated_cmov<T, index_t, ell>(arr, q);
+    } else {
+      return linear_scan_cmov<T, index_t, ell>(arr, q);
+    }
+  } else {
+  if constexpr (ell >= 32) {
+      return templated_cmov<T, index_t, ell>(arr, q);
+    } else {
+      return templated_binary<T, index_t, ell>(arr, q);
+    }
+  }
+#endif
+}
+
+template <class arr_t, class index_t = uint16_t>
+index_t search(const arr_t arr, typename arr_t::value_type q) {
+  static_assert(std::numeric_limits<index_t>::max() >= arr.size());
+  return search<typename arr_t::value_type, index_t, arr.size()>(arr.data(), q);
 }
