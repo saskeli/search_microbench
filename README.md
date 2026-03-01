@@ -1,10 +1,10 @@
 # search_microbench
 
-Benchmark for searching sorted $2^k$ (with $k \in [2..13]$) element arrays of both sighen and unsigned 8-, 16-, 32-, and 64-bit integers.
+Benchmark for searching sorted $2^k$ (with $k \in [1..13]$) element arrays of both signed and unsigned 8-, 16-, 32-, and 64-bit integers.
 
 Benchmark related to branch selection in B-trees in e.g. [https://github.com/saskeli/bit_vector](https://github.com/saskeli/bit_vector)
 
-Contains 7 implementations:
+Contains 9 implementations:
 
 | name               | description |
 |--------------------|-------------|
@@ -17,6 +17,8 @@ Contains 7 implementations:
 | `linear_scan`      | Naive linear scan. |
 | `linear_scan_cmov` | Linear scan based on conditional moves. |
 | `linear_scan_sub`  | Linear scan using sign bit arithmetic. (Limits application to positive signed integers.) |
+
+In addition, the simple `search` function is included, that automatically dispaches the "best" implementation based on architecture, data type and array size.
 
 ## Citing
 
