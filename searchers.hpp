@@ -8,14 +8,14 @@ index_t binary(const T* arr, const T q) {
   static_assert(__builtin_popcountll(ell) == 1);
   static_assert(ell >= 2);
   index_t a = 0;
-  index_t b = ell;
+  index_t b = ell - 1;
   index_t m;
   while (b > a) {
-    m = (a + b) / 2;
-    if (arr[m] < q)
-      a = m + 1;
+    m = (a + b + 1) / 2;
+    if (arr[m] <= q)
+      a = m;
     else
-      b = m;
+      b = m - 1;
   }
   return a;
 }
@@ -25,16 +25,16 @@ inline index_t templated_binary(const T* arr, const T q) {
   static_assert(__builtin_popcountll(ell) == 1);
   static_assert(ell >= 2);
   if constexpr (ell == 2) {
-    if (arr[0] < q) {
-      return 1;
-    } else {
+    if (arr[1] > q) {
       return 0;
+    } else {
+      return 1;
     }
   } else {
-    if (arr[ell / 2 - 1] < q) {
-      return ell / 2 + templated_binary<T, index_t, ell / 2>(arr + ell / 2, q);
-    } else {
+    if (arr[ell / 2] > q) {
       return templated_binary<T, index_t, ell / 2>(arr, q);
+    } else {
+      return ell / 2 + templated_binary<T, index_t, ell / 2>(arr + ell / 2, q);
     }
   }
 }
@@ -44,9 +44,9 @@ index_t templated_cmov(const T* arr, const T q) {
   static_assert(__builtin_popcountll(ell) == 1);
   static_assert(ell >= 2);
   if constexpr (ell == 2) {
-    return arr[0] < q;
+    return arr[1] <= q;
   } else {
-    index_t offset = (arr[ell / 2 - 1] < q) * (ell / 2);
+    index_t offset = (arr[ell / 2] <= q) * (ell / 2);
     index_t res = templated_cmov<T, index_t, ell / 2>(arr + offset, q);
     return res + offset;
   }
@@ -60,9 +60,9 @@ index_t templated_sub(const T* arr, const T q) {
   const constexpr index_t mag_bits = sizeof(T) * 8 - 1;
   const constexpr uint64_t MASK = uint64_t(1) << mag_bits;
   if constexpr (ell == 2) {
-    return ((arr[0] - q) & MASK) >> (mag_bits);
+    return (~(q - arr[1]) & MASK) >> (mag_bits);
   } else {
-    index_t offset = (((arr[ell / 2 - 1] - q) & MASK) >> mag_bits) * (ell / 2);
+    index_t offset = ((~(q - arr[ell / 2]) & MASK) >> mag_bits) * (ell / 2);
     index_t res = templated_sub<T, index_t, ell / 2>(arr + offset, q);
     return res + offset;
   }
@@ -72,9 +72,9 @@ template <class T = int, class index_t = uint8_t, index_t ell = 64>
 index_t branchless_cmov(const T* arr, const T q) {
   static_assert(__builtin_popcountll(ell) == 1);
   static_assert(ell >= 2);
-  index_t idx = (ell >> 1) - 1;
+  index_t idx = ell >> 1;
   for (index_t i = ell / 2; i > 0; i /= 2) {
-    idx ^= ((arr[idx] < q) * i) | (i / 2);
+    idx ^= ((arr[idx] > q) * i) | (i / 2);
   }
   return idx;
 }
@@ -86,11 +86,11 @@ index_t branchless_sub(const T* arr, const T q) {
   static_assert(ell >= 2);
   const constexpr index_t mag_bits = 63;
   const constexpr uint64_t MASK = uint64_t(1) << mag_bits;
-  index_t idx = (ell >> 1) - 1;
+  index_t idx = ell >> 1;
   int64_t w_q = q;
   for (index_t i = ell / 2; i > 0; i /= 2) {
     idx ^=
-        (((arr[idx] - w_q) & MASK) >> (mag_bits - __builtin_ctz(i))) | (i / 2);
+        (((w_q - arr[idx]) & MASK) >> (mag_bits - __builtin_ctz(i))) | (i / 2);
   }
   return idx;
 }
@@ -100,9 +100,9 @@ index_t linear_scan(const T* arr, const T q) {
   static_assert(__builtin_popcount(ell) == 1);
   static_assert(ell >= 2);
   for (index_t i = 0; i < ell; i++) {
-    if (arr[i] >= q) return i;
+    if (arr[i] > q) return i - 1;
   }
-  return ell;
+  return ell - 1;
 }
 
 template <class T = int, class index_t = uint8_t, index_t ell = 64>
@@ -111,9 +111,9 @@ index_t linear_scan_cmov(const T* arr, const T q) {
   static_assert(ell >= 2);
   index_t res = 0;
   for (index_t idx = 0; idx < ell; idx++) {
-    res += arr[idx] < q;
+    res += arr[idx] <= q;
   }
-  return res;
+  return res - 1;
 }
 
 template <class T = int, class index_t = uint8_t, index_t ell = 64>
@@ -125,16 +125,16 @@ index_t linear_scan_sub(const T* arr, const T q) {
   index_t res = 0;
   for (index_t idx = 0; idx < ell; idx++) {
     if constexpr (sizeof(T) == 1) {
-      res += uint8_t(arr[idx] - q) >> r_shift;
+      res += uint8_t(~(q - arr[idx])) >> r_shift;
     } else if constexpr (sizeof(T) == 2) {
-      res += uint16_t(arr[idx] - q) >> r_shift;
+      res += uint16_t(~(q - arr[idx])) >> r_shift;
     } else if constexpr (sizeof(T) == 4) {
-      res += uint32_t(arr[idx] - q) >> r_shift;
+      res += uint32_t(~(q - arr[idx])) >> r_shift;
     } else {
-      res += uint64_t(arr[idx] - q) >> r_shift;
+      res += uint64_t(~(q - arr[idx])) >> r_shift;
     }
   }
-  return res;
+  return res - 1;
 }
 
 template <class T = int, class index_t = uint8_t, index_t ell = 64>
@@ -146,7 +146,7 @@ index_t search(const T* arr, const T q) {
     } else {
       return linear_scan_cmov<T, index_t, ell>(arr, q);
     }
-  } else  {
+  } else {
     if constexpr (ell >= 256) {
       return templated_cmov<T, index_t, ell>(arr, q);
     } else {
@@ -173,7 +173,7 @@ index_t search(const T* arr, const T q) {
       return linear_scan_cmov<T, index_t, ell>(arr, q);
     }
   } else {
-  if constexpr (ell >= 32) {
+    if constexpr (ell >= 32) {
       return templated_cmov<T, index_t, ell>(arr, q);
     } else {
       return templated_binary<T, index_t, ell>(arr, q);

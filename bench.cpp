@@ -25,10 +25,16 @@ void run_bench(benchmark::State& state, auto q_f) {
     arr[i] = dist(gen);
   }
   std::sort(arr.begin(), arr.end());
+  std::uniform_int_distribution<T> q_dist(arr[0], max_val<T>());
   std::array<T, 100000> q_arr;
   bool checksum_set = false;
   for (auto _ : state) {
+    state.PauseTiming();
+    for (size_t i = 0; i < q_arr.size(); ++i) {
+      q_arr[i] = q_dist(gen);
+    }
     uint64_t checksum = 0;
+    state.ResumeTiming();
     for (auto q : q_arr) {
 #ifdef DEPENDENCE_INSERTION
       q += checksum & 0b1;
@@ -39,10 +45,6 @@ void run_bench(benchmark::State& state, auto q_f) {
     if (not checksum_set) {
       state.SetLabel(std::to_string(checksum));
       checksum_set = true;
-    }
-    std::uniform_int_distribution<T> q_dist(0, arr[arr.size() - 1] - 2);
-    for (size_t i = 0; i < q_arr.size(); ++i) {
-      q_arr[i] = q_dist(gen);
     }
     state.ResumeTiming();
   }

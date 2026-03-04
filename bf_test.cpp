@@ -31,8 +31,7 @@ void run_test(const std::string dtype_name) {
     arr[i] = uniform_dist(gen);
   }
   std::sort(arr.begin(), arr.end());
-  dtype lim = arr[arr.size() - 1];
-  std::uniform_int_distribution<dtype> q_dist(0, lim - 2);
+  std::uniform_int_distribution<dtype> q_dist(arr[0], m_val);
   for (size_t i = 0; i < q_a.size(); ++i) {
     q_a[i] = q_dist(gen);
   }
