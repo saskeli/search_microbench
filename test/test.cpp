@@ -171,3 +171,25 @@ TEST(Case, debug3) {
   ASSERT_EQ(actual, res);
   actual = search(arr, q);
 }
+
+TEST(Case, debug4) {
+  const constexpr uint16_t size = 2;
+  std::array<uint16_t, size> arr = {37355, 45876};
+  uint16_t q = 56678;
+  uint16_t res = 1;
+  int actual = binary<uint16_t, uint8_t, size>(arr.data(), q);
+  ASSERT_EQ(actual, res);
+  actual = templated_binary<uint16_t, uint8_t, size>(arr.data(), q);
+  ASSERT_EQ(actual, res);
+  actual = templated_cmov<uint16_t, uint8_t, size>(arr.data(), q);
+  ASSERT_EQ(actual, res);
+  actual = linear_scan<uint16_t, uint8_t, size>(arr.data(), q);
+  ASSERT_EQ(actual, res);
+  actual = linear_scan_cmov<uint16_t, uint8_t, size>(arr.data(), q);
+  ASSERT_EQ(actual, res);
+  actual = branchless_cmov<uint16_t, uint8_t, size>(arr.data(), q);
+  ASSERT_EQ(actual, res);
+  actual = search<uint16_t, uint8_t, size>(arr.data(), q);
+  ASSERT_EQ(actual, res);
+  actual = search(arr, q);
+}

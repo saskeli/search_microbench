@@ -28,7 +28,7 @@ void run_prof(count_t& counter, uint64_t* data, uint64_t seed, cb_t cb) {
     arr[i] = uniform_dist(gen);
   }
   std::sort(arr.begin(), arr.end());
-  std::uniform_int_distribution<dtype> q_dist(arr[0], m_val);
+  std::uniform_int_distribution<dtype> q_dist(arr[0], m_val - 1);
   dtype* q_a = reinterpret_cast<dtype*>(data);
   for (size_t i = 0; i < Q_COUNT; ++i) {
     q_a[i] = q_dist(gen);

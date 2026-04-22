@@ -25,7 +25,7 @@ void run_bench(benchmark::State& state, auto q_f) {
     arr[i] = dist(gen);
   }
   std::sort(arr.begin(), arr.end());
-  std::uniform_int_distribution<T> q_dist(arr[0], max_val<T>());
+  std::uniform_int_distribution<T> q_dist(arr[0], max_val<T>() - 1);
   std::array<T, 100000> q_arr;
   bool checksum_set = false;
   for (auto _ : state) {

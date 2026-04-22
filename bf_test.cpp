@@ -102,7 +102,8 @@ void run_test(const std::string dtype_name) {
 int main() {
   uint64_t epoch = 0;
   while (true) {
-    std::cerr << epoch++ << "\r";
+    std::cerr << ++epoch << "\r";
     R_TEST();
   }
 }
+
