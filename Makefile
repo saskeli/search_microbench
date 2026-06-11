@@ -4,25 +4,25 @@ MACHINE=$(shell lscpu | grep -o -P "(?<=Model name:).*" | sed -E 's/\s+//; s/\(\
 
 CFLAGS=-march=native -std=c++2a -Wall -Wextra -Wshadow -pedantic
 BENCH=-isystem benchmark/include -Lbenchmark/build/src -lbenchmark -lpthread
-CMAKE_OPT=-DBENCHMARK_DOWNLOAD_DEPENDENCIES=on -DCMAKE_BUILD_TYPE=Release
+CMAKE_OPT=-DCMAKE_BUILD_TYPE=Release -DBENCHMARK_ENABLE_TESTING=OFF -DBENCHMARK_ENABLE_GTEST_TESTS=OFF -DBENCHMARK_DOWNLOAD_DEPENDENCIES=OFF
 
 TEST = -lpthread -DGTEST_ON -isystem googletest/googletest/include -pthread -L googletest/build/lib
 
 all: bench profile bench_avx profile_avx
 
-bench: bench.cpp searchers.hpp benchmark/build/lib/libgtest.a
+bench: bench.cpp searchers.hpp benchmark/build/src/libbenchmark.a
 	g++ $(CFLAGS) -DNDEBUG -DDEPENDENCE_INSERTION -Ofast bench.cpp $(BENCH) -o bench
 
 profile: profile.cpp searchers.hpp counters/counters.hpp
 	g++ $(CFLAGS) -DNDEBUG -DDEPENDENCE_INSERTION -Ofast profile.cpp -o profile
 
-bench_avx: bench.cpp searchers.hpp benchmark/build/lib/libgtest.a
+bench_avx: bench.cpp searchers.hpp benchmark/build/src/libbenchmark.a
 	g++ $(CFLAGS) -DNDEBUG -Ofast bench.cpp $(BENCH) -o bench_avx
 
 profile_avx: profile.cpp searchers.hpp counters/counters.hpp
 	g++ $(CFLAGS) -DNDEBUG -Ofast profile.cpp -o profile_avx
 
-debug_bench: bench.cpp searchers.hpp benchmark/build/lib/libgtest.a
+debug_bench: bench.cpp searchers.hpp benchmark/build/src/libbenchmark.a
 	g++ $(CFLAGS) -DDEBUG -O1 -g bench.cpp $(BENCH) -o debug_bench
 
 bf_test: bf_test.cpp searchers.hpp
@@ -34,7 +34,7 @@ debug_bf_test: bf_test.cpp searchers.hpp
 benchmark/include:
 	git submodule update --init
 
-benchmark/build/lib/libgtest.a: | benchmark/include
+benchmark/build/src/libbenchmark.a: | benchmark/include
 	mkdir -p benchmark/build
 	(cd benchmark; cmake $(CMAKE_OPT) -S . -B "build")
 	(cd benchmark; cmake --build "build" --config Release)
