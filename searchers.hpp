@@ -1,5 +1,3 @@
-#include <emmintrin.h>
-
 #include <cstdint>
 #include <type_traits>
 
